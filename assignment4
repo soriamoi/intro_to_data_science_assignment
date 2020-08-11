@@ -153,6 +153,182 @@ def get_recession_end():
 get_recession_end()
 
 
+'''
+===================================================================
+Question 4
+
+def get_recession_bottom():
+    '''Returns the year and quarter of the recession bottom time as a 
+    string value in a format such as 2005q3'''
+    
+    return "ANSWER"
+===================================================================
+'''
+
+# Answer to this question shown below:
+
+def get_recession_bottom():
+    '''Returns the year and quarter of the recession bottom time as a 
+    string value in a format such as 2005q3'''
+    xls_file= pd. read_excel('gdplev.xls', 'Sheet1', index_col=None, skiprows=5)
+    xls_file.to_csv('gdplev.csv', encoding='utf-8')
+    GDP = pd.read_csv('gdplev.csv', index_col=None, usecols=range(5,7), skiprows=range(1,215))
+    GDP.columns = ['Quarter', 'GDP']
+    GDP = GDP.set_index('Quarter')
+    start_idx = get_recession_start()
+    end_idx = get_recession_end()
+    new_GDP = GDP.loc[start_idx:end_idx]
+    recession_bottom = new_GDP['GDP'].min()
+    bottom_ind = new_GDP.index[new_GDP['GDP'] == recession_bottom][0]
+    
+    return bottom_ind
+
+get_recession_bottom()
+
+
+'''
+===================================================================
+Question 5
+
+def convert_housing_data_to_quarters():
+    '''Converts the housing data to quarters and returns it as mean 
+    values in a dataframe. This dataframe should be a dataframe with
+    columns for 2000q1 through 2016q3, and should have a multi-index
+    in the shape of ["State","RegionName"].
+    
+    Note: Quarters are defined in the assignment description, they are
+    not arbitrary three month periods.
+    
+    The resulting dataframe should have 67 columns, and 10,730 rows.
+    '''
+    
+    return "ANSWER"
+===================================================================
+'''
+
+# Answer to this question shown below:
+
+def convert_housing_data_to_quarters():
+    '''Converts the housing data to quarters and returns it as mean 
+    values in a dataframe. This dataframe should be a dataframe with
+    columns for 2000q1 through 2016q3, and should have a multi-index
+    in the shape of ["State","RegionName"].
+    
+    Note: Quarters are defined in the assignment description, they are
+    not arbitrary three month periods.
+    
+    The resulting dataframe should have 67 columns, and 10,730 rows.
+    '''
+    states = {'OH': 'Ohio', 'KY': 'Kentucky', 'AS': 'American Samoa', 'NV': 'Nevada', 'WY': 'Wyoming', 'NA': 'National', 'AL': 'Alabama', 'MD': 'Maryland', 'AK': 'Alaska', 'UT': 'Utah', 'OR': 'Oregon', 'MT': 'Montana', 'IL': 'Illinois', 'TN': 'Tennessee', 'DC': 'District of Columbia', 'VT': 'Vermont', 'ID': 'Idaho', 'AR': 'Arkansas', 'ME': 'Maine', 'WA': 'Washington', 'HI': 'Hawaii', 'WI': 'Wisconsin', 'MI': 'Michigan', 'IN': 'Indiana', 'NJ': 'New Jersey', 'AZ': 'Arizona', 'GU': 'Guam', 'MS': 'Mississippi', 'PR': 'Puerto Rico', 'NC': 'North Carolina', 'TX': 'Texas', 'SD': 'South Dakota', 'MP': 'Northern Mariana Islands', 'IA': 'Iowa', 'MO': 'Missouri', 'CT': 'Connecticut', 'WV': 'West Virginia', 'SC': 'South Carolina', 'LA': 'Louisiana', 'KS': 'Kansas', 'NY': 'New York', 'NE': 'Nebraska', 'OK': 'Oklahoma', 'FL': 'Florida', 'CA': 'California', 'CO': 'Colorado', 'PA': 'Pennsylvania', 'DE': 'Delaware', 'NM': 'New Mexico', 'RI': 'Rhode Island', 'MN': 'Minnesota', 'VI': 'Virgin Islands', 'NH': 'New Hampshire', 'MA': 'Massachusetts', 'GA': 'Georgia', 'ND': 'North Dakota', 'VA': 'Virginia'}
+
+    # Load Zillow Home Sale Price Data
+    Home_Sale = pd.read_csv('City_Zhvi_AllHomes.csv', index_col=['State', 'RegionName'])
+    home_df = Home_Sale.loc[:, '2000-01':'2016-08']
+    
+    def convert_to_qtr(year_month):
+        year, month = year_month.split('-')
+        if month == '01' or month == '02' or month == '03':
+            qtr = year + 'q1'
+        elif month == '04' or month == '05' or month == '06':
+            qtr = year + 'q2'
+        elif month == '07' or month == '08' or month == '09':
+            qtr = year + 'q3'
+        else:
+            qtr = year + 'q4'
+        return qtr
+    
+    df1 = home_df.copy()
+    df1.columns = df1.columns.to_series().apply(convert_to_qtr)
+    df1 = df1.groupby(level=0, axis=1).mean().reset_index()
+    df1['State'] = df1['State'].map(states)
+    df1 = df1.set_index(['State', 'RegionName'])
+    
+    return df1
+
+convert_housing_data_to_quarters()
+
+'''
+===================================================================
+Question 6
+
+def run_ttest():
+    '''First creates new data showing the decline or growth of housing prices
+    between the recession start and the recession bottom. Then runs a ttest
+    comparing the university town values to the non-university towns values, 
+    return whether the alternative hypothesis (that the two groups are the same)
+    is true or not as well as the p-value of the confidence. 
+    
+    Return the tuple (different, p, better) where different=True if the t-test is
+    True at a p<0.01 (we reject the null hypothesis), or different=False if 
+    otherwise (we cannot reject the null hypothesis). The variable p should
+    be equal to the exact p value returned from scipy.stats.ttest_ind(). The
+    value for better should be either "university town" or "non-university town"
+    depending on which has a lower mean price ratio (which is equivilent to a
+    reduced market loss).'''
+    
+    return "ANSWER"
+===================================================================
+'''
+
+# Answer to this question shown below:
+
+from scipy.stats import ttest_ind
+
+def run_ttest():
+    '''First creates new data showing the decline or growth of housing prices
+    between the recession start and the recession bottom. Then runs a ttest
+    comparing the university town values to the non-university towns values, 
+    return whether the alternative hypothesis (that the two groups are the same)
+    is true or not as well as the p-value of the confidence. 
+    
+    Return the tuple (different, p, better) where different=True if the t-test is
+    True at a p<0.01 (we reject the null hypothesis), or different=False if 
+    otherwise (we cannot reject the null hypothesis). The variable p should
+    be equal to the exact p value returned from scipy.stats.ttest_ind(). The
+    value for better should be either "university town" or "non-university town"
+    depending on which has a lower mean price ratio (which is equivilent to a
+    reduced market loss).'''
+    
+    # Get University Town data
+    uni_towns = get_list_of_university_towns()
+    uni_towns['Uni_town'] = True
+    
+    # Merge Housing data & University Town
+    df1 = pd.merge(uni_towns, convert_housing_data_to_quarters(), how='outer', right_index=True, left_on=['State', 'RegionName'])
+    df1['Uni_town'] = df1['Uni_town'].replace({np.NaN: False})
+    df1 = df1.set_index(['State', 'RegionName','Uni_town'])
+    start_idx = get_recession_start()
+    bottom_idx = get_recession_bottom()
+    
+    # Parsing the recession quarters
+    df1 = df1.loc[:, start_idx:bottom_idx]
+    df1 = df1.reset_index()
+    
+    # Price_ratio
+    df1['price_ratio'] = df1[bottom_idx] - df1[start_idx]
+
+    # t-test to determine whether or not there is a difference between university and non-university towns
+    uni_town_price_ratio = df1[df1['Uni_town'] == True]['price_ratio']
+    non_uni_town_price_ratio = df1[df1['Uni_town'] == False]['price_ratio']
+    st, p = ttest_ind(uni_town_price_ratio, non_uni_town_price_ratio, nan_policy='omit')
+
+    # get different and better values
+    different = False
+    if p < 0.01:
+        different = True
+
+    # determine which type of town is better
+    better = ''
+    if uni_town_price_ratio.mean() > non_uni_town_price_ratio.mean():
+        better = 'university town'
+    else:
+        better = 'non-university town'
+
+    return (different, p, better)
+
+run_ttest()
+
+
 
 
 
