@@ -1,0 +1,158 @@
+## Assignment 4 - Hypothesis Testing
+'''
+Definitions:
+A quarter is a specific three month period, Q1 is January through March, Q2 is April through June, Q3 is July through September, Q4 is October through December.
+A recession is defined as starting with two consecutive quarters of GDP decline, and ending with two consecutive quarters of GDP growth.
+A recession bottom is the quarter within a recession which had the lowest GDP.
+A university town is a city which has a high percentage of university students compared to the total population of the city.
+Hypothesis: University towns have their mean housing prices less effected by recessions. Run a t-test to compare the ratio of the mean price of houses in university towns the quarter before the recession starts compared to the recession bottom. (price_ratio=quarter_before_recession/recession_bottom)
+The following data files are available for this assignment:
+From the Zillow research data site there is housing data for the United States. In particular the datafile for all homes at a city level, City_Zhvi_AllHomes.csv, has median home sale prices at a fine grained level.
+From the Wikipedia page on college towns is a list of university towns in the United States which has been copy and pasted into the file university_towns.txt.
+From Bureau of Economic Analysis, US Department of Commerce, the GDP over time of the United States in current dollars (use the chained value in 2009 dollars), in quarterly intervals, in the file gdplev.xls. For this assignment, only look at GDP data from the first quarter of 2000 onward.
+Each function in this assignment below is worth 10%, with the exception of run_ttest(), which is worth 50%.
+'''
+
+'''
+## my scratch paper area
+
+import numpy as np
+from scipy.stats import ttest_ind
+
+# Load Zillow Home Sale Price Data
+Home_Sale = pd.read_csv('City_Zhvi_AllHomes.csv', index_col=None)
+#Home_Sale.head()
+
+# Load GDP Data
+xls_file= pd. read_excel('gdplev.xls', 'Sheet1', index_col=None, skiprows=5)
+xls_file.to_csv('gdplev.csv', encoding='utf-8')
+GDP = pd.read_csv('gdplev.csv', index_col=None, usecols=range(5,8), skiprows=range(1,215))
+#GDP.head()
+
+# Load University Town Data
+UniTowns = pd.read_csv('university_towns.txt', sep="\n", header=None)
+#UniTowns.head()
+
+# Use this dictionary to map state names to two letter acronyms
+states = {'OH': 'Ohio', 'KY': 'Kentucky', 'AS': 'American Samoa', 'NV': 'Nevada', 'WY': 'Wyoming', 'NA': 'National', 'AL': 'Alabama', 'MD': 'Maryland', 'AK': 'Alaska', 'UT': 'Utah', 'OR': 'Oregon', 'MT': 'Montana', 'IL': 'Illinois', 'TN': 'Tennessee', 'DC': 'District of Columbia', 'VT': 'Vermont', 'ID': 'Idaho', 'AR': 'Arkansas', 'ME': 'Maine', 'WA': 'Washington', 'HI': 'Hawaii', 'WI': 'Wisconsin', 'MI': 'Michigan', 'IN': 'Indiana', 'NJ': 'New Jersey', 'AZ': 'Arizona', 'GU': 'Guam', 'MS': 'Mississippi', 'PR': 'Puerto Rico', 'NC': 'North Carolina', 'TX': 'Texas', 'SD': 'South Dakota', 'MP': 'Northern Mariana Islands', 'IA': 'Iowa', 'MO': 'Missouri', 'CT': 'Connecticut', 'WV': 'West Virginia', 'SC': 'South Carolina', 'LA': 'Louisiana', 'KS': 'Kansas', 'NY': 'New York', 'NE': 'Nebraska', 'OK': 'Oklahoma', 'FL': 'Florida', 'CA': 'California', 'CO': 'Colorado', 'PA': 'Pennsylvania', 'DE': 'Delaware', 'NM': 'New Mexico', 'RI': 'Rhode Island', 'MN': 'Minnesota', 'VI': 'Virgin Islands', 'NH': 'New Hampshire', 'MA': 'Massachusetts', 'GA': 'Georgia', 'ND': 'North Dakota', 'VA': 'Virginia'}
+
+'''
+
+'''
+===================================================================
+Qqestions 1:
+
+def get_list_of_university_towns():
+    '''Returns a DataFrame of towns and the states they are in from the 
+    university_towns.txt list. The format of the DataFrame should be:
+    DataFrame( [ ["Michigan", "Ann Arbor"], ["Michigan", "Yipsilanti"] ], 
+    columns=["State", "RegionName"]  )
+    
+    The following cleaning needs to be done:
+
+    1. For "State", removing characters from "[" to the end.
+    2. For "RegionName", when applicable, removing every character from " (" to the end.
+    3. Depending on how you read the data, you may need to remove newline character '\n'. '''
+    
+    return "ANSWER"
+===================================================================
+'''
+
+# Answer to this question shown below:
+
+def get_list_of_university_towns():
+    '''Returns a DataFrame of towns and the states they are in from the 
+    university_towns.txt list. The format of the DataFrame should be:
+    DataFrame( [ ["Michigan", "Ann Arbor"], ["Michigan", "Yipsilanti"] ], 
+    columns=["State", "RegionName"]  )
+    
+    The following cleaning needs to be done:
+
+    1. For "State", removing characters from "[" to the end.
+    2. For "RegionName", when applicable, removing every character from " (" to the end.
+    3. Depending on how you read the data, you may need to remove newline character '\n'. '''
+    
+    with open('university_towns.txt') as ff:
+        info = []
+        for line in ff:
+            info.append(line[:-1])         
+    state_region = []
+    for item in info:
+        if item[-6:] == '[edit]':
+            state = item[:-6]
+        elif '(' in item:
+            remove_digit = item.index('(')-1
+            region = item[:remove_digit]
+            state_region.append((state, region))
+            
+    df = pd.DataFrame(state_region, columns = ['State','RegionName'])
+    return df
+
+get_list_of_university_towns()
+
+
+'''
+===================================================================
+Question 2:
+
+def get_recession_start():
+    '''Returns the year and quarter of the recession start time as a 
+    string value in a format such as 2005q3
+    A recession is defined as starting with two consecutive quarters of GDP decline, 
+    and ending with two consecutive quarters of GDP growth.'''
+===================================================================
+'''
+
+# Answer to this question shown below:
+
+    xls_file= pd. read_excel('gdplev.xls', 'Sheet1', index_col=None, skiprows=5)
+    xls_file.to_csv('gdplev.csv', encoding='utf-8')
+    
+    GDP = pd.read_csv('gdplev.csv', index_col=None, usecols=range(5,7), skiprows=range(1,215))
+    GDP.columns = ['Quarter', 'GDP']
+    # GDP = GDP.set_index('Quarter')
+    for i in range(4,len(GDP)):
+        if GDP.loc[i-4, 'GDP'] < GDP.loc[i-3, 'GDP'] and GDP.loc[i-3, 'GDP'] < GDP.loc[i-2, 'GDP'] and GDP.loc[i-2, 'GDP'] > GDP.loc[i-1, 'GDP'] and GDP.loc[i-1, 'GDP'] > GDP.loc[i, 'GDP']:
+            recession_start_idx = i-2
+    recession_start = GDP.loc[recession_start_idx, 'Quarter'] 
+    
+    return recession_start
+
+get_recession_start()
+
+
+'''
+===================================================================
+Question 3
+
+def get_recession_end():
+    '''Returns the year and quarter of the recession end time as a 
+    string value in a format such as 2005q3'''
+       
+    return "ANSWER"
+===================================================================
+'''
+
+# Answer to this question shown below:
+
+def get_recession_end():
+    '''Returns the year and quarter of the recession end time as a 
+    string value in a format such as 2005q3'''
+    xls_file= pd. read_excel('gdplev.xls', 'Sheet1', index_col=None, skiprows=5)
+    xls_file.to_csv('gdplev.csv', encoding='utf-8')
+    GDP = pd.read_csv('gdplev.csv', index_col=None, usecols=range(5,7), skiprows=range(1,215))
+    GDP.columns = ['Quarter', 'GDP']
+    # GDP = GDP.set_index('Quarter')
+    for i in range(4,len(GDP)):
+        if GDP.loc[i-4, 'GDP'] > GDP.loc[i-3, 'GDP'] and GDP.loc[i-3, 'GDP'] > GDP.loc[i-2, 'GDP'] and GDP.loc[i-2, 'GDP'] < GDP.loc[i-1, 'GDP'] and GDP.loc[i-1, 'GDP'] < GDP.loc[i, 'GDP']:
+            recession_start_idx = i
+    recession_end = GDP.loc[recession_start_idx, 'Quarter'] 
+    
+    return recession_end
+
+get_recession_end()
+
+
+
+
+
